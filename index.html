@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Houun Zemi｜TOP</title>
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'Noto Sans JP',system-ui,sans-serif;overflow:hidden;transition:background 1s ease}
+    a{text-decoration:none;color:inherit}
+
+    /* 昼と夜のテーマ */
+    body.theme-night{background:radial-gradient(circle at 20% 20%,#1e3a8a,#0b1b53 80%);color:#fff}
+    body.theme-day{background:linear-gradient(180deg,#bfe3ff 0%,#e6f7ff 60%,#ffffff 100%);color:#333}
+
+    /* トップバー */
+    .topbar{position:fixed;top:0;left:0;width:100%;height:80px;display:flex;align-items:center;justify-content:space-between;padding:0 20px;z-index:20}
+    .brand{display:flex;align-items:center;gap:10px;color:#fff}
+    .brand .logo{width:48px;height:48px;border-radius:12px;background:linear-gradient(135deg,#38bdf8,#60a5fa);display:flex;align-items:center;justify-content:center;font-weight:900;font-size:24px;color:#fff;box-shadow:0 0 10px rgba(0,0,0,0.3)}
+    .brand .name{font-size:22px;font-weight:900;color:#fff}
+    .topnav{display:flex;gap:24px;background:rgba(255,255,255,0.2);padding:10px 20px;border-radius:999px;backdrop-filter:blur(10px)}
+    .topnav a{font-weight:900;color:#fff}
+    .topnav a:hover{text-decoration:underline}
+    .toggle{margin-left:10px;border:none;padding:8px 16px;border-radius:999px;background:rgba(255,255,255,0.3);color:#fff;font-weight:900;cursor:pointer}
+
+    /* PICK UP */
+    .pickup{position:absolute;top:100px;left:50%;transform:translateX(-50%);font-size:80px;font-weight:900;color:#f0abfc;text-shadow:0 5px 10px rgba(0,0,0,0.3)}
+
+    /* 雲スライダー */
+    .slider{position:relative;width:100%;height:100vh;display:flex;align-items:center;justify-content:center;overflow:hidden}
+    .track{display:flex;gap:60px;transition:transform .6s ease;list-style:none}
+    .slide{flex:0 0 auto}
+    .cloud{display:grid;place-items:center;width:420px;height:130px;background:linear-gradient(180deg,#fff,#e0f2fe);border-radius:999px;font-size:40px;font-weight:900;color:#0b1b53;box-shadow:0 10px 40px rgba(0,0,0,0.4);cursor:pointer}
+
+    .navbtn{position:absolute;top:50%;transform:translateY(-50%);width:60px;height:60px;border:none;border-radius:50%;background:rgba(255,255,255,0.8);color:#0b1b53;font-size:28px;font-weight:900;cursor:pointer}
+    .prev{left:30px}.next{right:30px}
+
+    /* モーダル */
+    #panel{display:none;position:fixed;inset:0;align-items:center;justify-content:center;background:rgba(0,0,0,0.6);backdrop-filter:blur(5px);z-index:50}
+    .card{background:#fff;border-radius:20px;padding:30px;min-width:300px;max-width:600px;box-shadow:0 0 30px rgba(0,0,0,0.4);text-align:center}
+    .close{position:absolute;top:10px;right:10px;background:#fff;border:none;width:40px;height:40px;border-radius:50%;cursor:pointer}
+
+  /* ==== 夜の星・流れ星 ==== */
+    .stars{position:fixed;inset:-10% -10%;pointer-events:none;z-index:0}
+    .stars::before,.stars::after{content:"";position:absolute;inset:0;background:
+      radial-gradient(2px 2px at 8% 12%, #fff 60%, transparent 62%),
+      radial-gradient(2px 2px at 14% 42%, #fff 60%, transparent 62%),
+      radial-gradient(2px 2px at 22% 70%, #fff 60%, transparent 62%),
+      radial-gradient(2.4px 2.4px at 35% 25%, #fff 60%, transparent 62%),
+      radial-gradient(2px 2px at 50% 50%, #fff 60%, transparent 62%),
+      radial-gradient(2.4px 2.4px at 62% 30%, #fff 60%, transparent 62%),
+      radial-gradient(2px 2px at 74% 68%, #fff 60%, transparent 62%),
+      radial-gradient(2.4px 2.4px at 88% 18%, #fff 60%, transparent 62%),
+      radial-gradient(2px 2px at 95% 52%, #fff 60%, transparent 62%);
+      animation: twinkle 6s linear infinite;opacity:.9}
+    .stars::after{filter:blur(.8px);opacity:.55;animation-duration:9s}
+    @keyframes twinkle{0%{transform:translateY(0)}100%{transform:translateY(-2%)}}
+
+    .night-only{position:fixed;inset:0;pointer-events:none;z-index:0}
+    .shoot{position:absolute;height:2px;background:linear-gradient(90deg,#fff,transparent);opacity:.9}
+    .shoot.s1{left:8%;top:22%;width:200px;transform:rotate(12deg);animation:shoot 3.2s linear infinite}
+    .shoot.s2{left:70%;top:68%;width:160px;transform:rotate(-18deg);animation:shoot 4.4s linear .8s infinite}
+    @keyframes shoot{0%{opacity:0;transform:translateX(0) rotate(var(--deg,0))}10%{opacity:1}100%{opacity:0;transform:translateX(240px) rotate(var(--deg,0))}}
+
+    /* 昼は星・流れ星を非表示 */
+    body.theme-day .stars, body.theme-day .night-only{display:none}
+    body.theme-night .stars, body.theme-night .night-only{display:block}
+
+    /* 前景を前に */
+    .topbar,.pickup,.slider{position:relative;z-index:5}
+  </style>
+</head>
+<body class="theme-night">
+  <!-- 夜の背景レイヤー -->
+  <div class="stars" aria-hidden="true"></div>
+  <div class="night-only" aria-hidden="true">
+    <div class="shoot s1" style="--deg:12deg"></div>
+    <div class="shoot s2" style="--deg:-18deg"></div>
+  </div>
+  <div class="topbar">
+    <div class="brand"><div class="logo">H</div><div class="name">法雲ゼミ（仮）</div></div>
+    <div style="display:flex;align-items:center;gap:10px">
+      <nav class="topnav" id="topnav">
+        <a href="#">先生紹介</a>
+        <a href="#">ゼミの紹介</a>
+        <a href="#">活動報告</a>
+        <a href="#">お知らせ</a>
+        <a href="#">お問い合わせ</a>
+        <a href="#">卒業の進路</a>
+      </nav>
+      <button id="themeToggle" class="toggle">🌙 夜</button>
+    </div>
+  </div>
+
+  <div class="pickup">PICK UP</div>
+
+  <main class="slider">
+    <button class="navbtn prev" id="prev">‹</button>
+    <ul class="track" id="track">
+      <li class="slide"><div class="cloud">先生紹介</div></li>
+      <li class="slide"><div class="cloud">ゼミの紹介</div></li>
+      <li class="slide"><div class="cloud">活動報告</div></li>
+      <li class="slide"><div class="cloud">お知らせ</div></li>
+      <li class="slide"><div class="cloud">お問い合わせ</div></li>
+      <li class="slide"><div class="cloud">卒業の進路</div></li>
+    </ul>
+    <button class="navbtn next" id="next">›</button>
+  </main>
+
+  <div id="panel">
+    <div class="card">
+      <button class="close" id="close">×</button>
+      <h3 id="panelTitle">タイトル</h3>
+    </div>
+  </div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded',()=>{
+      const body=document.body;
+      const themeToggle=document.getElementById('themeToggle');
+      themeToggle.addEventListener('click',()=>{
+        if(body.classList.contains('theme-night')){
+          body.classList.remove('theme-night');
+          body.classList.add('theme-day');
+          themeToggle.textContent='☀ 昼';
+        } else {
+          body.classList.remove('theme-day');
+          body.classList.add('theme-night');
+          themeToggle.textContent='🌙 夜';
+        }
+      });
+
+      const track=document.getElementById('track');
+      const slides=[...track.children];
+      let idx=0;
+      function moveSlide(n){idx=(idx+n+slides.length)%slides.length;track.style.transform=`translateX(${-idx*(slides[0].offsetWidth+60)}px)`;}
+      document.getElementById('prev').addEventListener('click',()=>moveSlide(-1));
+      document.getElementById('next').addEventListener('click',()=>moveSlide(1));
+
+      const panel=document.getElementById('panel');
+      const close=document.getElementById('close');
+      const title=document.getElementById('panelTitle');
+      function openModal(text){title.textContent=text+'（内容）';panel.style.display='flex';}
+      function closeModal(){panel.style.display='none';}
+      close.addEventListener('click',closeModal);
+      panel.addEventListener('click',e=>{if(e.target===panel)closeModal();});
+
+      document.querySelectorAll('.cloud, .topnav a').forEach(el=>{
+        el.addEventListener('click',()=>openModal(el.textContent.trim()));
+      });
+    });
+  </script>
+</body>
+</html>
